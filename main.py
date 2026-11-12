@@ -52,4 +52,6 @@ def main() -> None:
     print("Марьям знову може взяти велосипед")
     total += return_bicycle(maryam, a, 1)
     print_report([a, b], total)
-
+    
+if __name__ == "__main__":
+    main()
