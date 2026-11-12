@@ -1,8 +1,12 @@
+from decimal import Decimal
+
 from bikes_stations import Bicycle, Station
 from client import Client
 from deposit import Deposit
 
-def take_bicycle(client: Client, station: Station, bike_number: int, deposit_sum: int):
+
+def take_bicycle(
+    client: Client, station: Station, bike_number: int, deposit_sum: int):
     if client.bike is not None:
         return "Клієнт уже орендує велосипед"
     if client.balance < 0:
@@ -13,6 +17,10 @@ def take_bicycle(client: Client, station: Station, bike_number: int, deposit_sum
     bike = station.find_bicycle(bike_number)
     if bike is None:
         return f"На станції {station.name} немає велосипеда №{bike_number}"
+    if not bike.can_ride():
+        bike = station.find_ready_bike()
+        if bike is None:
+            return f"На станції {station.name} немає придатних велосипедів"
 
     deposit = Deposit(deposit_sum)
     if not deposit.can_hold(client.balance):
@@ -25,10 +33,14 @@ def take_bicycle(client: Client, station: Station, bike_number: int, deposit_sum
     return None
 
 
-def calculate_cost(bike: Bicycle, minutes: int):
+def calculate_cost(bike: Bicycle, minutes: int, trips: int = 0):
     if minutes <= 0:
         raise ValueError("Тривалість поїздки має бути більшою за нуль")
-    return bike.rate() * minutes
+
+    cost = Decimal(bike.rate() * minutes)
+    if trips >= 3:
+        cost *= Decimal("0.9")
+    return cost
 
 
 def return_bicycle(client: Client, station: Station, minutes: int):
@@ -37,12 +49,11 @@ def return_bicycle(client: Client, station: Station, minutes: int):
     if bike is None or deposit is None:
         raise ValueError("Клієнт не орендує велосипед")
 
-    cost = calculate_cost(bike, minutes)
+    cost = calculate_cost(bike, minutes, client.trips)
     client.balance = deposit.refund(client.balance)
     client.charge(cost)
     station.return_bicycle(bike)
     client.bike = None
     client.deposit = None
+    client.trips += 1
     return cost
-
-
