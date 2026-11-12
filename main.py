@@ -16,3 +16,8 @@ def ride(
     cost = return_bicycle(client, end, minutes)
     print(f"{client.name} їде з {start.name} на {end.name} {minutes} хв і платить {cost} грн")
     return cost
+def print_report(stations: list[Station], total: int) -> None:
+    print("Звіт адміністратора")
+    for station in stations:
+        print(f"Станція {station.name} {station.count()}велосипедів")
+    print(f"Виручка {total} грн")
